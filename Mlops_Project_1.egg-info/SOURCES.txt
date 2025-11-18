@@ -8,6 +8,7 @@ config/__init__.py
 config/model_params.py
 config/paths_config.py
 pipelines/__init__.py
+pipelines/training_pipeline.py
 src/__init__.py
 src/custom_exception.py
 src/data_ingestion.py
