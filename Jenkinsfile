@@ -39,9 +39,9 @@ pipeline {
 
                 '''
 
-                // git branch: 'main',
-                //     url: 'https://github.com/babuann/Churn_Prediction.git',
-                //     credentialsId: 'github-token'
+                git branch: 'main',
+                    url: 'https://github.com/babuann/Churn_Prediction.git',
+                    credentialsId: 'github-token'
             }
         }
     }
