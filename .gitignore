@@ -3,6 +3,5 @@ mlruns/
 logs/
 Mlops_Project_1.egg-info/notebook/random_forest_model.pkl
 notebook/random_forest_model.pkl
-*.pkl
-*.h5
-*.pt
+
+
