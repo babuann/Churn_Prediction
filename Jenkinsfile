@@ -35,24 +35,31 @@ pipeline {
                     script {
                         echo 'Building and Pushing Docker Image to GCR ......'
                         sh """
-                            # Add gcloud to PATH
-                            export PATH=\\\$PATH:${GCLOUD_PATH}
+                                echo 'Building and Pushing Docker Image to GCR ......'
 
-                            echo "Authenticating to GCP..."
-                            gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
+                        
+                                echo "Adding gcloud to PATH"
+                                export PATH="/usr/lib/google-cloud-sdk/bin:\$PATH"
 
-                            echo "Setting GCP project..."
-                            gcloud config set project "$GCP_PROJECT"
+                                echo "Checking gcloud version..."
+                                which gcloud
+                                gcloud --version
 
-                            echo "Configuring Docker auth..."
-                            gcloud auth configure-docker --quiet
+                                echo "Authenticating to GCP..."
+                                gcloud auth activate-service-account --key-file="\${GOOGLE_APPLICATION_CREDENTIALS}"
 
-                            echo "Building Docker image..."
-                            docker build -t "gcr.io/$GCP_PROJECT/ml-project:latest" .
+                                echo "Setting GCP project..."
+                                gcloud config set project "${GCP_PROJECT}"
 
-                            echo "Pushing Docker image..."
-                            docker push "gcr.io/$GCP_PROJECT/ml-project:latest"
-                        """
+                                echo "Configuring Docker authentication..."
+                                gcloud auth configure-docker --quiet
+
+                                echo "Building Docker image..."
+                                docker build -t gcr.io/${GCP_PROJECT}/ml-project:latest .
+
+                                echo "Pushing Docker image..."
+                                docker push gcr.io/${GCP_PROJECT}/ml-project:latest
+                """
                     }
                 }
             }
