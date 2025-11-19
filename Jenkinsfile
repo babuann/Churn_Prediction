@@ -27,6 +27,7 @@ pipeline {
                 sh '''
                     python -m venv ${VENV_DIR}
                     . ${VENV_DIR}/bin/activate
+                    python --version
                     pip install --upgrade pip
                     pip install -e .
                 '''
