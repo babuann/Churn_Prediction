@@ -1,12 +1,16 @@
 pipeline {
     agent any
+
     environment {
-        VENV_DIR   = 'venv'
-        GCP_PROJECT = "cool-freehold-475210-c0"
-        GCLOUD_PATH = "/var/jenkins_home/google-cloud-sdk/bin"
+        VENV_DIR     = 'venv'
+        GCP_PROJECT  = "cool-freehold-475210-c0"
+        GCLOUD_PATH  = "/usr/lib/google-cloud-sdk/bin"
+        GCP_REGION   = "us-central1"
+        SERVICE_NAME = "ml-project"
     }
 
     stages {
+
         stage('Cloning Github repo to Jenkins') {
             steps {
                 echo 'Cloning Github repo to Jenkins..........'
@@ -32,66 +36,62 @@ pipeline {
         stage('Building and Pusing Docker Image to GCR') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    script {
-                        echo 'Building and Pushing Docker Image to GCR ......'
-                        sh """
-                                echo 'Building and Pushing Docker Image to GCR ......'
+                    sh '''
+                        echo "Building and Pushing Docker Image to GCR ......"
 
-                        
-                                echo "Adding gcloud to PATH"
-                                export PATH="/usr/lib/google-cloud-sdk/bin:\$PATH"
+                        echo "Adding gcloud to PATH"
+                        export PATH="'${GCLOUD_PATH}'":$PATH
 
-                                echo "Checking gcloud version..."
-                                which gcloud
-                                gcloud --version
+                        echo "Checking gcloud version..."
+                        which gcloud
+                        gcloud --version
 
-                                echo "Authenticating to GCP..."
-                                gcloud auth activate-service-account --key-file="\${GOOGLE_APPLICATION_CREDENTIALS}"
+                        echo "Authenticating to GCP..."
+                        gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
 
-                                echo "Setting GCP project..."
-                                gcloud config set project "${GCP_PROJECT}"
+                        echo "Setting GCP project..."
+                        gcloud config set project "$GCP_PROJECT"
 
-                                echo "Configuring Docker authentication..."
-                                gcloud auth configure-docker --quiet
+                        echo "Configuring Docker authentication..."
+                        gcloud auth configure-docker --quiet
 
-                                echo "Building Docker image..."
-                                docker build -t gcr.io/${GCP_PROJECT}/ml-project:latest .
+                        echo "Building Docker image..."
+                        docker build -t "gcr.io/$GCP_PROJECT/$SERVICE_NAME:latest" .
 
-                                echo "Pushing Docker image..."
-                                docker push gcr.io/${GCP_PROJECT}/ml-project:latest
-                """
-                    }
+                        echo "Pushing Docker image..."
+                        docker push "gcr.io/$GCP_PROJECT/$SERVICE_NAME:latest"
+                    '''
                 }
             }
+        }
+
         stage('Deploy to Google Cloud Run') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-key', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    script {
-                        echo 'Deploy to Google Cloud Run......'
-                        sh """
-                                echo 'Deploy to Google Cloud Run......'
+                    sh '''
+                        echo "Deploying to Google Cloud Run......"
 
-                        
-                                echo "Adding gcloud to PATH"
-                                export PATH="/usr/lib/google-cloud-sdk/bin:\$PATH"
+                        echo "Adding gcloud to PATH"
+                        export PATH="'${GCLOUD_PATH}'":$PATH
 
-                                echo "Checking gcloud version..."
-                                which gcloud
-                                gcloud --version
+                        echo "Checking gcloud version..."
+                        which gcloud
+                        gcloud --version
 
-                                echo "Authenticating to GCP..."
-                                gcloud auth activate-service-account --key-file="\${GOOGLE_APPLICATION_CREDENTIALS}"
+                        echo "Authenticating to GCP..."
+                        gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
 
-                                echo "Setting GCP project..."
-                                gcloud config set project "${GCP_PROJECT}"
+                        echo "Setting GCP project..."
+                        gcloud config set project "$GCP_PROJECT"
 
-                                gcloud run deploy ml-project \
-                                    -- image=gcr.io/${GCP_PROJECT}/ml-project:latest \
-                                    -- platform=managed \
-                                    -- region=us-central1 \
-                                    -- allow=unauthenticated 
-                """
-                    }
+                        echo "Deploying to Cloud Run..."
+                        gcloud run deploy "$SERVICE_NAME" \
+                            --image="gcr.io/$GCP_PROJECT/$SERVICE_NAME:latest" \
+                            --platform=managed \
+                            --region="$GCP_REGION" \
+                            --allow-unauthenticated \
+                            --port=5000
+                    '''
                 }
             }
         }
