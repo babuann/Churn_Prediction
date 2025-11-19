@@ -90,7 +90,7 @@ pipeline {
                             --platform=managed \
                             --region="$GCP_REGION" \
                             --allow-unauthenticated \
-                            --port=5000
+                            --port=8080
                     '''
                 }
             }
