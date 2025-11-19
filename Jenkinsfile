@@ -1,16 +1,3 @@
-// pipeline{
-//     agent any
-
-//     stages{
-//         stage('Cloning Github repo to Jenkins'){
-//         steps{
-//             script{
-//                 echo 'Cloning Github repo to Jenkins..........'
-//                 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-token', url: 'https://github.com/babuann/Churn_Prediction.git']])
-//             }
-//         }
-//     }
-// }
 
 pipeline {
     agent any
@@ -52,16 +39,20 @@ pipeline {
                 {
                     script{
                         echo 'Building and Pushing DOcker Image to GCR ......'
-                        sh '''
+                        sh """
                             export PATH=$PATH:${GCLOUD_PATH}
                         
                             gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+                            echo "Setting GCP project..."
                             gcloud config set project ${GCP_PROJRECT}
+                            
+                            echo "Configuring Docker auth..."
                             gcloud auth configure-docker --quiet
 
+                            echo "Building Docker image..."
                             docker build -t gcr.io/${GCP_PROJECT}/ml-project:latest .
                             docker push gcr.io/${GCP_PROJECT}/ml-project:latest 
-                        '''
+                        '"""
                     }
                 }
                
