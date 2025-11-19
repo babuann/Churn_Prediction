@@ -14,7 +14,8 @@ COPY . .
 
 RUN pip install --no-cache-dir -e .
 
-RUN python pipelines/training_pipeline.py
+# RUN python pipelines/training_pipeline.py
+ENV PORT=8080
 
 EXPOSE 8080
 
